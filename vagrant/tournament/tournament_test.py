@@ -124,6 +124,22 @@ def testPairings():
             "After one match, players with one win should be paired.")
     print "8. After one match, players with one win are paired."
 
+    # champ round
+    reportMatch(id3, id1)
+    # consolation round
+    reportMatch(id2, id4)
+    standings = playerStandings()
+    for (i, n, w, m) in standings:
+        if m != 2:
+            raise ValueError("Each player should have one match recorded.")
+        if i == id3 and w != 2:
+            raise ValueError("champion should have 2 wins")
+        elif i in (id1, id2) and w != 1:
+            raise ValueError("two players should have 1 win")
+        elif i == id4 and w != 0:
+            raise ValueError("Loser should have none")
+    print "9. After two matchs, champ is on top, loser on bottom"
+
 
 if __name__ == '__main__':
     testDeleteMatches()

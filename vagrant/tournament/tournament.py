@@ -15,6 +15,7 @@ def deleteMatches():
     """Remove all the match records from the database."""
     DB = connect()
     c = DB.cursor()
+    """ delete the match data """
     c.execute("DELETE FROM matches")
     DB.commit() 
     DB.close()
@@ -67,11 +68,16 @@ def playerStandings():
     """
     DB = connect()
     c = DB.cursor()
-    c.execute("SELECT * FROM players ORDER BY wins")
+    # slightly complex query returns (player.id, player.name, calculated player wins, calculated player matches)
+    # by joining together the players and matches tables and doing counts on them. 
+    c.execute('''SELECT players.id, players.name, 
+        count(case when players.id = matches.winner then 1 else null end) as wins,
+        count(case when players.id = matches.winner or players.id = matches.loser then 1 else null end) as matchCount
+        FROM players LEFT OUTER JOIN matches on players.id in (matches.winner, matches.loser) 
+        GROUP BY players.id ORDER BY wins DESC''')
     records = c.fetchall()
     DB.commit() 
     DB.close()
-    #print(records)
     return records
 
 def reportMatch(winner, loser):
@@ -83,9 +89,6 @@ def reportMatch(winner, loser):
     """
     DB = connect()
     c = DB.cursor()
-    c.execute("UPDATE players SET matches = matches + 1 WHERE id = (%s)", (winner,))
-    c.execute("UPDATE players SET matches = matches + 1 WHERE id = (%s)", (loser,))
-    c.execute("UPDATE players SET wins = wins + 1 WHERE id = (%s)", (winner,))
     c.execute("INSERT INTO matches VALUES (%s, %s)", (winner, loser))
     DB.commit() 
     DB.close()
@@ -106,7 +109,6 @@ def swissPairings():
         name2: the second player's name
     """
     records = playerStandings()
-    #print(records)
     mylist = []
     for i in range(0, len(records), 2):
         mylist.append((records[i][0], records[i][1], records[i+1][0],
