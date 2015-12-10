@@ -33,7 +33,6 @@ def countPlayers():
     c = DB.cursor()
     c.execute("SELECT count(*) FROM players")
     records = c.fetchone()
-    print records[0]
     DB.commit() 
     DB.close()
     return records[0]
@@ -47,7 +46,11 @@ def registerPlayer(name):
     Args:
       name: the player's full name (need not be unique).
     """
-
+    DB = connect()
+    c = DB.cursor()
+    c.execute("INSERT INTO players (name) VALUES (%s)", (name,))
+    DB.commit() 
+    DB.close()
 
 def playerStandings():
     """Returns a list of the players and their win records, sorted by wins.
@@ -62,7 +65,14 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
-
+    DB = connect()
+    c = DB.cursor()
+    c.execute("SELECT * FROM players ORDER BY wins")
+    records = c.fetchall()
+    DB.commit() 
+    DB.close()
+    #print(records)
+    return records
 
 def reportMatch(winner, loser):
     """Records the outcome of a single match between two players.
@@ -71,7 +81,14 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
- 
+    DB = connect()
+    c = DB.cursor()
+    c.execute("UPDATE players SET matches = matches + 1 WHERE id = (%s)", (winner,))
+    c.execute("UPDATE players SET matches = matches + 1 WHERE id = (%s)", (loser,))
+    c.execute("UPDATE players SET wins = wins + 1 WHERE id = (%s)", (winner,))
+    c.execute("INSERT INTO matches VALUES (%s, %s)", (winner, loser))
+    DB.commit() 
+    DB.close()
  
 def swissPairings():
     """Returns a list of pairs of players for the next round of a match.
@@ -88,5 +105,14 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
+    records = playerStandings()
+    #print(records)
+    mylist = []
+    for i in range(0, len(records), 2):
+        mylist.append((records[i][0], records[i][1], records[i+1][0],
+            records[i+1][1]));
+    return mylist
+
+
 
 
