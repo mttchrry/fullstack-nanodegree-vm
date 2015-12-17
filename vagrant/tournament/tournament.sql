@@ -10,9 +10,7 @@ DROP DATABASE IF EXISTS tournament;
 
 CREATE DATABASE tournament;
 \c tournament;
-CREATE TABLE players(id SERIAL PRIMARY KEY, name varchar(50), wins integer DEFAULT 0, matches integer DEFAULT 0);
+CREATE TABLE players(id SERIAL PRIMARY KEY, name varchar(50));
 CREATE TABLE matches(winner integer REFERENCES players(id), loser integer REFERENCES players(id));
 DROP DATABASE IF EXISTS test2;
-CREATE DATABASE test2;
-\c test2;
 
